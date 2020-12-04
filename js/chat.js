@@ -16,6 +16,11 @@ var main = async(docid) => {
 
 
 };
+
+function updateScroll() {
+    var element = document.getElementById("chatmess");
+    element.scrollTop = element.scrollHeight;
+}
 var globaladd = () => {};
 var first = async(docid, number) => {
     console.log(4);
@@ -130,6 +135,7 @@ var chatmessage = async(docid, number) => {
 
         }
         document.getElementById('chatmess').innerHTML = finalchat;
+        updateScroll();
     });
 };
 
@@ -167,9 +173,15 @@ var addmessage = async(docid, number) => {
     });
     data[number]['message'] = list;
     data2[data['number']]['message'] = list2;
-    doc.update(data);
-    doc2.update(data2);
+    await doc.update(data);
+    await doc2.update(data2);
     document.getElementById('comment').value = "";
+
+    function updateScroll() {
+        var element = document.getElementById("chatmess");
+        element.scrollTop = element.scrollHeight;
+    }
+    updateScroll();
 
 };
 var user = async(docid) => {
@@ -180,7 +192,8 @@ var user = async(docid) => {
     console.log(docid);
     // var docdata = await doc.get();
     // var data = docdata.data();
-    doc.onSnapshot((doc) => {
+    doc.onSnapshot(async(doc) => {
+        document.getElementById('ownavtar').innerHTML = doc.data()['DP'] != null ? `<img src = "${doc.data()['DP']}" >` : `<img src = "https://static.thenounproject.com/png/503257-200.png" >`;
         var finalchat = '';
         var data = doc.data();
         var keys = Object.keys(data);
@@ -198,8 +211,9 @@ var user = async(docid) => {
                 (keys[i] != 'downloadablelink') &&
                 (keys[i] != 'status') &&
                 (keys[i] != 'time')) {
-
-                finalchat = finalchat + chattile(keys[i], docid, keys[i]);
+                let doc1 = firestore.doc(data[keys[i]]['docid']);
+                let data1 = await doc1.get();
+                finalchat = finalchat + chattile(data1.data()['name'], docid, keys[i], data[keys[i]]['avtar'] != null ? data[keys[i]]['avtar'] : 'https://static.thenounproject.com/png/503257-200.png');
 
             }
         }
@@ -218,9 +232,18 @@ var user = async(docid) => {
                 (keys[i] != 'downloadablelink') &&
                 (keys[i] != 'status') &&
                 (keys[i] != 'time')) {
-                document.getElementById(keys[i]).addEventListener('click', () => {
-                    first(docid, keys[i]);
-                    document.getElementById('headname').innerHTML = keys[i];
+                let doc1 = firestore.doc(data[keys[i]]['docid']);
+                let data1 = await doc1.get();
+                document.getElementById(keys[i]).addEventListener('click', async() => {
+                    await first(docid, keys[i]);
+                    document.getElementById('avatar').innerHTML = data[keys[i]]['avtar'] != null ? ` <img src = "${data[keys[i]]['avtar']}" > ` : ` <img src = "https://static.thenounproject.com/png/503257-200.png" > `
+                    document.getElementById('headname').innerHTML = data1.data()['name'];
+
+                    function updateScroll() {
+                        var element = document.getElementById("chatmess");
+                        element.scrollTop = element.scrollHeight;
+                    }
+                    updateScroll();
                 });
 
             }
